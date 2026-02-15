@@ -1,5 +1,5 @@
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { useState, useRef, FormEvent } from 'react';
+import { useState, useRef, FormEvent, useEffect } from 'react';
 import emailjs from '@emailjs/browser';
 
 // Configuration EmailJS
@@ -13,6 +13,11 @@ export function Contact() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');
 
+  // Initialiser EmailJS au chargement
+  useEffect(() => {
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -22,20 +27,29 @@ export function Contact() {
     setSubmitStatus('idle');
 
     try {
-      await emailjs.sendForm(
+      const result = await emailjs.sendForm(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         formRef.current,
         EMAILJS_PUBLIC_KEY
       );
 
+      console.log('Email envoyé avec succès:', result);
       setSubmitStatus('success');
       setStatusMessage('Votre demande a été envoyée avec succès ! Nous vous répondrons dans les plus brefs délais.');
       formRef.current.reset();
-    } catch (error) {
-      console.error('Erreur envoi email:', error);
+    } catch (error: any) {
+      console.error('Erreur détaillée:', error);
       setSubmitStatus('error');
-      setStatusMessage('Une erreur est survenue. Veuillez réessayer ou nous contacter directement par email.');
+      
+      // Message d'erreur plus détaillé
+      let errorMsg = 'Une erreur est survenue. ';
+      if (error?.text) {
+        errorMsg += `Détails : ${error.text}. `;
+      }
+      errorMsg += 'Veuillez réessayer ou nous contacter directement par email.';
+      
+      setStatusMessage(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
