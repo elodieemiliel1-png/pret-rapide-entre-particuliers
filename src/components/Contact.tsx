@@ -5,7 +5,7 @@ import emailjs from '@emailjs/browser';
 // Configuration EmailJS - Identifiants validés
 const EMAILJS_SERVICE_ID = 'service_miikrwb';
 const EMAILJS_TEMPLATE_ID = 'template_9v371ts';
-const EMAILJS_PUBLIC_KEY = 'I1lEJYMgLISGsRaz';
+const EMAILJS_PUBLIC_KEY = 'l1IeEJYMgLISGsRaz';
 
 // Initialiser EmailJS une seule fois
 emailjs.init(EMAILJS_PUBLIC_KEY);
