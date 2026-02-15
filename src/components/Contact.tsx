@@ -5,7 +5,7 @@ import emailjs from '@emailjs/browser';
 // Configuration EmailJS
 const EMAILJS_SERVICE_ID = 'service_miikrwb';
 const EMAILJS_TEMPLATE_ID = 'yb1h4xo';
-const EMAILJS_PUBLIC_KEY = 'l1IeEJYMgLISGsRaz';
+const EMAILJS_PUBLIC_KEY = 'I1ieEJYMgLISGsRaz';
 
 export function Contact() {
   const formRef = useRef<HTMLFormElement>(null);
