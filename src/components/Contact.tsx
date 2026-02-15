@@ -1,6 +1,46 @@
-import { Mail, Phone, MapPin, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { useState, useRef, FormEvent } from 'react';
+import emailjs from '@emailjs/browser';
+
+// Configuration EmailJS
+const EMAILJS_SERVICE_ID = 'service_miikrwb';
+const EMAILJS_TEMPLATE_ID = 'yb1h4xo';
+const EMAILJS_PUBLIC_KEY = 'I1lEJYMgLISGsRaz';
 
 export function Contact() {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!formRef.current) return;
+
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      await emailjs.sendForm(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        formRef.current,
+        EMAILJS_PUBLIC_KEY
+      );
+
+      setSubmitStatus('success');
+      setStatusMessage('Votre demande a été envoyée avec succès ! Nous vous répondrons dans les plus brefs délais.');
+      formRef.current.reset();
+    } catch (error) {
+      console.error('Erreur envoi email:', error);
+      setSubmitStatus('error');
+      setStatusMessage('Une erreur est survenue. Veuillez réessayer ou nous contacter directement par email.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-24 px-4 relative">
       <div className="max-w-7xl mx-auto">
@@ -59,7 +99,7 @@ export function Contact() {
 
           <div className="p-8 rounded-2xl bg-white/50 backdrop-blur-lg border border-white/60 shadow-lg">
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Envoyez-nous un message</h3>
-            <form className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                   Nom complet
@@ -67,6 +107,8 @@ export function Contact() {
                 <input
                   type="text"
                   id="name"
+                  name="from_name"
+                  required
                   className="w-full px-4 py-3 rounded-xl bg-white/70 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                   placeholder="Votre nom"
                 />
@@ -79,6 +121,8 @@ export function Contact() {
                 <input
                   type="email"
                   id="email"
+                  name="from_email"
+                  required
                   className="w-full px-4 py-3 rounded-xl bg-white/70 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                   placeholder="votre@email.com"
                 />
@@ -91,6 +135,8 @@ export function Contact() {
                 <input
                   type="text"
                   id="amount"
+                  name="amount"
+                  required
                   className="w-full px-4 py-3 rounded-xl bg-white/70 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
                   placeholder="Ex: 10 000 €"
                 />
@@ -102,18 +148,46 @@ export function Contact() {
                 </label>
                 <textarea
                   id="message"
+                  name="message"
                   rows={4}
+                  required
                   className="w-full px-4 py-3 rounded-xl bg-white/70 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none"
                   placeholder="Décrivez votre projet et vos besoins..."
                 />
               </div>
 
+              {/* Message de statut */}
+              {submitStatus !== 'idle' && (
+                <div className={`p-4 rounded-xl flex items-center gap-3 ${
+                  submitStatus === 'success' 
+                    ? 'bg-green-50 text-green-700 border border-green-200' 
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}>
+                  {submitStatus === 'success' ? (
+                    <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  )}
+                  <p className="text-sm">{statusMessage}</p>
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
               >
-                Envoyer la demande
-                <Send className="w-5 h-5" />
+                {isSubmitting ? (
+                  <>
+                    Envoi en cours...
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Envoyer la demande
+                    <Send className="w-5 h-5" />
+                  </>
+                )}
               </button>
             </form>
 
