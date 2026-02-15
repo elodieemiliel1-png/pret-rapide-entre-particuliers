@@ -1,22 +1,20 @@
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { useState, useRef, FormEvent, useEffect } from 'react';
+import { useState, useRef, FormEvent } from 'react';
 import emailjs from '@emailjs/browser';
 
-// Configuration EmailJS
+// Configuration EmailJS - Identifiants validés
 const EMAILJS_SERVICE_ID = 'service_miikrwb';
 const EMAILJS_TEMPLATE_ID = 'template_9v371ts';
 const EMAILJS_PUBLIC_KEY = 'I1ieEJYMgLISGsRaz';
+
+// Initialiser EmailJS une seule fois
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
 export function Contact() {
   const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [statusMessage, setStatusMessage] = useState('');
-
-  // Initialiser EmailJS au chargement
-  useEffect(() => {
-    emailjs.init(EMAILJS_PUBLIC_KEY);
-  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,11 +25,19 @@ export function Contact() {
     setSubmitStatus('idle');
 
     try {
-      const result = await emailjs.sendForm(
+      // Utiliser send au lieu de sendForm pour plus de contrôle
+      const formData = new FormData(formRef.current);
+      const templateParams = {
+        from_name: formData.get('from_name') as string,
+        from_email: formData.get('from_email') as string,
+        amount: formData.get('amount') as string,
+        message: formData.get('message') as string,
+      };
+
+      const result = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
-        formRef.current,
-        EMAILJS_PUBLIC_KEY
+        templateParams
       );
 
       console.log('Email envoyé avec succès:', result);
@@ -46,6 +52,8 @@ export function Contact() {
       let errorMsg = 'Une erreur est survenue. ';
       if (error?.text) {
         errorMsg += `Détails : ${error.text}. `;
+      } else if (error?.message) {
+        errorMsg += `Détails : ${error.message}. `;
       }
       errorMsg += 'Veuillez réessayer ou nous contacter directement par email.';
       
